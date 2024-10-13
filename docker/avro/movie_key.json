@@ -1,4 +1,4 @@
 {
   "schemaType": "AVRO",
-  "schema": "{\"namespace\":\"com.jonathanfoucher.kafkaexample.avro.movie\",\"type\":\"record\",\"name\":\"MovieKey\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"}]}"
+  "schema": "{\"namespace\":\"com.jonathanfoucher.pojo.avro.movie\",\"type\":\"record\",\"name\":\"MovieKey\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"}]}"
 }
