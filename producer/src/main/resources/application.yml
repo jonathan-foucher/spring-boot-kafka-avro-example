@@ -1,0 +1,18 @@
+server:
+  port: 8090
+  servlet:
+    context-path: /kafka-producer
+
+spring:
+  jackson:
+    property-naming-strategy: com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy
+  kafka:
+    producer:
+      key-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      bootstrap-servers: localhost:9093
+      topic-name: kafka_example_movie_avro
+      properties:
+        auto.register.schemas: false
+        specific.avro.reader: true
+        schema.registry.url: http://localhost:8181
