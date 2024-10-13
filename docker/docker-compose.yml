@@ -1,0 +1,95 @@
+services:
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    tmpfs: /datalog
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    healthcheck:
+      test: nc -w 3 localhost 2181 || exit 1
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      timeout: 10s
+    networks:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=false
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
+    healthcheck:
+      test: kafka-topics.sh --list --bootstrap-server 127.0.0.1:9092
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      timeout: 60s
+    networks:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 3072M
+        reservations:
+          memory: 1536M
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+  init-kafka:
+    image: confluentinc/cp-kafka:latest
+    networks:
+      - kafka
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic kafka_example_movie_json --replication-factor 1 --partitions 6
+      "
+  akhq:
+    image: tchiotludo/akhq:latest
+    ports:
+      - '8190:8080'
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: kafka:9092
+              ui-options:
+                topic-data:
+                  sort: NEWEST
+    links:
+      - kafka
+    networks:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 256M
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+networks:
+  kafka:
+    name: kafka
