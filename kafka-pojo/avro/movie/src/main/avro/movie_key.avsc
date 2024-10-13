@@ -1,5 +1,5 @@
 {
-  "namespace": "com.jonathanfoucher.kafkaexample.avro.movie",
+  "namespace": "com.jonathanfoucher.pojo.avro.movie",
   "type": "record",
   "name": "MovieKey",
   "fields": [
