@@ -1,0 +1,11 @@
+{
+  "namespace": "com.jonathanfoucher.kafkaexample.avro.movie",
+  "type": "record",
+  "name": "MovieKey",
+  "fields": [
+    {
+      "name": "id",
+      "type": "long"
+    }
+  ]
+}
