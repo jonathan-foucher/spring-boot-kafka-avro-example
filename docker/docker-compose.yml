@@ -50,15 +50,43 @@ services:
     depends_on:
       zookeeper:
         condition: service_healthy
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest
+    ports:
+      - '8181:8081'
+    environment:
+      - SCHEMA_REGISTRY_HOST_NAME=localhost
+      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka:9092
+      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
+      - SCHEMA_REGISTRY_AUTO_REGISTER_SCHEMAS=false
+    healthcheck:
+      test: curl --fail http://localhost:8081 || exit 1
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      timeout: 10s
+    networks:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 256M
+    depends_on:
+      kafka:
+        condition: service_healthy
   init-kafka:
     image: confluentinc/cp-kafka:latest
     networks:
       - kafka
     depends_on:
       - kafka
+      - schema-registry
     entrypoint: [ '/bin/sh', '-c' ]
     command: |
       "
+      cub --help
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic kafka_example_movie_json --replication-factor 1 --partitions 6
       "
@@ -73,11 +101,14 @@ services:
             docker-kafka-server:
               properties:
                 bootstrap.servers: kafka:9092
+              schema-registry:
+                url: http://schema-registry:8081
               ui-options:
                 topic-data:
                   sort: NEWEST
     links:
       - kafka
+      - schema-registry
     networks:
       - kafka
     deploy:
@@ -88,6 +119,8 @@ services:
           memory: 256M
     depends_on:
       kafka:
+        condition: service_healthy
+      schema-registry:
         condition: service_healthy
 
 networks:
