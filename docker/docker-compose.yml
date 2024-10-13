@@ -86,9 +86,9 @@ services:
     entrypoint: [ '/bin/sh', '-c' ]
     command: |
       "
-      cub --help
+      cub kafka-ready -b kafka:9092 1 60
       echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic kafka_example_movie_json --replication-factor 1 --partitions 6
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic kafka_example_movie_avro --replication-factor 1 --partitions 6
       "
   akhq:
     image: tchiotludo/akhq:latest
@@ -118,10 +118,8 @@ services:
         reservations:
           memory: 256M
     depends_on:
-      kafka:
-        condition: service_healthy
-      schema-registry:
-        condition: service_healthy
+      - kafka
+      - schema-registry
 
 networks:
   kafka:
