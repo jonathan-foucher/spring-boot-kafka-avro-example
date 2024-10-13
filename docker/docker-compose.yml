@@ -78,6 +78,8 @@ services:
         condition: service_healthy
   init-kafka:
     image: confluentinc/cp-kafka:latest
+    volumes:
+      - ${PWD}/avro:/opt/docker/avro
     networks:
       - kafka
     depends_on:
@@ -89,6 +91,28 @@ services:
       cub kafka-ready -b kafka:9092 1 60
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic kafka_example_movie_avro --replication-factor 1 --partitions 6
+
+      cub sr-ready schema-registry 8081 60
+      if [[ \\
+        `curl --write-out '%{http_code}' --silent --output /dev/null \\
+          --request GET http://schema-registry:8081/subjects/kafka_example_movie_avro-key/versions \\
+          --header 'Accept: application/vnd.schemaregistry.v1+json'` \\
+        == 404 ]]; then
+        curl --request POST http://schema-registry:8081/subjects/kafka_example_movie_avro-key/versions \\
+          --header 'Accept: application/vnd.schemaregistry.v1+json' \\
+          --header 'Content-Type: application/json' \\
+            --data-binary @/opt/docker/avro/movie_key.json
+      fi
+      if [[ \\
+        `curl --write-out '%{http_code}' --silent --output /dev/null \\
+          --request GET http://schema-registry:8081/subjects/kafka_example_movie_avro-value/versions \\
+          --header 'Accept: application/vnd.schemaregistry.v1+json'` \\
+        == 404 ]]; then
+        curl --request POST http://schema-registry:8081/subjects/kafka_example_movie_avro-value/versions \\
+          --header 'Accept: application/vnd.schemaregistry.v1+json' \\
+          --header 'Content-Type: application/json' \\
+          --data-binary @/opt/docker/avro/movie_value.json
+      fi
       "
   akhq:
     image: tchiotludo/akhq:latest
