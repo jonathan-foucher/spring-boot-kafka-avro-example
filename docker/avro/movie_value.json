@@ -1,0 +1,4 @@
+{
+  "schemaType": "AVRO",
+  "schema": "{\"namespace\":\"com.jonathanfoucher.kafkaexample.avro.movie\",\"type\":\"record\",\"name\":\"MovieValue\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"title\",\"type\":\"string\"},{\"name\":\"release_date\",\"type\":{\"type\":\"int\",\"logicalType\":\"date\"}}]}"
+}
