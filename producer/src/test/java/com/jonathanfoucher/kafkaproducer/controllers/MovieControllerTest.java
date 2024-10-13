@@ -1,6 +1,7 @@
 package com.jonathanfoucher.kafkaproducer.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jonathanfoucher.kafkaproducer.services.MovieService;
 import com.jonathanfoucher.pojo.avro.movie.MovieValue;
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(MovieController.class)
 @SpringJUnitConfig(MovieController.class)
 class MovieControllerTest {
     private MockMvc mockMvc;
@@ -44,13 +43,14 @@ class MovieControllerTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         objectMapper.registerModule(new JavaTimeModule());
     }
 
     @BeforeEach
     void initEach() {
         mockMvc = MockMvcBuilders.standaloneSetup(movieController)
-                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
     }
 
