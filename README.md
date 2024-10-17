@@ -20,13 +20,15 @@ It will launch different containers:
 - zookeeper
 - kafka
 - schema-registry
-- akhq: a [browser GUI](http://localhost:8190/) to check out topics, messages and schemas
+- akhq: a browser GUI to check out topics, messages and schemas
 - init-kafka: init container to create the required Kafka topic and schemas
 
 
 ```
 docker-compose -f docker/docker-compose.yml up -f
 ```
+
+You will be able to access akhq on [this url](http://localhost:8190/)
 
 ### Application
 Once the Kafka environment started and healthy, you can start the Spring Boot projects and try them out.
