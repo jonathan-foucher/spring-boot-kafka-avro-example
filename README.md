@@ -25,7 +25,7 @@ It will launch different containers:
 
 
 ```
-docker-compose -f docker/docker-compose.yml up -f
+docker-compose -f docker/docker-compose.yml up -d
 ```
 
 You will be able to access akhq on [this url](http://localhost:8190/)
