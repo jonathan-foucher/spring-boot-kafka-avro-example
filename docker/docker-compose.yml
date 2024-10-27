@@ -79,7 +79,7 @@ services:
   init-kafka:
     image: confluentinc/cp-kafka:latest
     volumes:
-      - ${PWD}/avro:/opt/docker/avro
+      - ./avro:/opt/docker/avro
     networks:
       - kafka
     depends_on:
