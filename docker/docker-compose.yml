@@ -8,9 +8,9 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     healthcheck:
       test: nc -w 3 localhost 2181 || exit 1
-      interval: 30s
-      retries: 3
-      start_period: 20s
+      interval: 10s
+      retries: 5
+      start_period: 10s
       timeout: 10s
     networks:
       - kafka
@@ -35,10 +35,10 @@ services:
       - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
     healthcheck:
       test: kafka-topics.sh --list --bootstrap-server 127.0.0.1:9092
-      interval: 30s
-      retries: 3
-      start_period: 60s
-      timeout: 60s
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 30s
     networks:
       - kafka
     deploy:
