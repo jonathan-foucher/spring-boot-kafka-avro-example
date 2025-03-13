@@ -1,0 +1,12 @@
+spring:
+  kafka:
+    producer:
+      security:
+        protocol: SSL
+    ssl:
+      key-store-key: ${KEY_STORE_KEY}
+      key-store-certificate-chain: ${KEY_STORE_CERTIFICATE}
+      key-store-type: PEM
+      trust-store-certificates: ${TRUST_STORE_CERTIFICATE}
+      trust-store-type: PEM
+      protocol: TLS
