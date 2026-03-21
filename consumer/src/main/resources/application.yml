@@ -6,7 +6,7 @@ spring:
       auto-offset-reset: earliest
       enable-auto-commit: false
       group-id: movie-consumer
-      bootstrap-servers: localhost:9093
+      bootstrap-servers: localhost:9094
       topic-name: kafka_example_movie_avro
       properties:
         auto.register.schemas: false

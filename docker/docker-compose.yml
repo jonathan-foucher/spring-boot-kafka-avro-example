@@ -1,69 +1,52 @@
 services:
-  zookeeper:
-    image: bitnami/zookeeper:latest
-    tmpfs: /datalog
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
     ports:
-      - '2181:2181'
+      - 9094:9094
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+     KAFKA_PROCESS_ROLES: controller,broker
+     KAFKA_NODE_ID: 1
+     KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+     KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+     KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+     KAFKA_LOG_DIRS: /var/lib/kafka/data
+     KAFKA_AUTO_CREATE_TOPICS_ENABLE: false
+     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+     KAFKA_LOG_RETENTION_HOURS: 168
+     KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+     CLUSTER_ID: local-kafka-cluster
     healthcheck:
-      test: nc -w 3 localhost 2181 || exit 1
+      test: kafka-topics --bootstrap-server kafka:9092 --list
       interval: 10s
       retries: 5
-      start_period: 10s
       timeout: 10s
     networks:
       - kafka
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 2048M
         reservations:
-          memory: 128M
-  kafka:
-    image: bitnami/kafka:latest
-    ports:
-      - '9092:9092'
-      - '9093:9093'
-    environment:
-      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=false
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
-      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
-    healthcheck:
-      test: kafka-topics.sh --list --bootstrap-server 127.0.0.1:9092
-      interval: 10s
-      retries: 5
-      start_period: 10s
-      timeout: 30s
-    networks:
-      - kafka
-    deploy:
-      resources:
-        limits:
-          memory: 3072M
-        reservations:
-          memory: 1536M
-    depends_on:
-      zookeeper:
-        condition: service_healthy
+          memory: 256M
+
   schema-registry:
     image: confluentinc/cp-schema-registry:latest
+    container_name: schema-registry
     ports:
-      - '8181:8081'
+      - 8181:8081
     environment:
-      - SCHEMA_REGISTRY_HOST_NAME=localhost
-      - SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS=kafka:9092
-      - SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081
-      - SCHEMA_REGISTRY_AUTO_REGISTER_SCHEMAS=false
+      SCHEMA_REGISTRY_HOST_NAME: localhost
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_AUTO_REGISTER_SCHEMAS: false
     healthcheck:
       test: curl --fail http://localhost:8081 || exit 1
-      interval: 30s
-      retries: 3
-      start_period: 20s
+      interval: 10s
+      retries: 5
       timeout: 10s
     networks:
       - kafka
@@ -76,6 +59,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+
   init-kafka:
     image: confluentinc/cp-kafka:latest
     volumes:
@@ -83,16 +67,18 @@ services:
     networks:
       - kafka
     depends_on:
-      - kafka
-      - schema-registry
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
     entrypoint: [ '/bin/sh', '-c' ]
     command: |
       "
-      cub kafka-ready -b kafka:9092 1 60
+      ub kafka-ready -b kafka:9092 1 60
       echo -e 'Creating kafka topics'
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic kafka_example_movie_avro --replication-factor 1 --partitions 6
 
-      cub sr-ready schema-registry 8081 60
+      ub sr-ready schema-registry 8081 60
       if [[ \\
         `curl --write-out '%{http_code}' --silent --output /dev/null \\
           --request GET http://schema-registry:8081/subjects/kafka_example_movie_avro-key/versions \\
@@ -114,22 +100,16 @@ services:
           --data-binary @/opt/docker/avro/movie_value.json
       fi
       "
-  akhq:
-    image: tchiotludo/akhq:latest
+
+  kafka-ui:
+    image: kafbat/kafka-ui:latest
+    container_name: kafka-ui
     ports:
-      - '8190:8080'
+      - 9090:8080
     environment:
-      AKHQ_CONFIGURATION: |
-        akhq:
-          connections:
-            docker-kafka-server:
-              properties:
-                bootstrap.servers: kafka:9092
-              schema-registry:
-                url: http://schema-registry:8081
-              ui-options:
-                topic-data:
-                  sort: NEWEST
+      KAFKA_CLUSTERS_0_NAME: local-kafka-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
     links:
       - kafka
       - schema-registry
@@ -138,12 +118,14 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1024M
+          memory: 1536M
         reservations:
           memory: 256M
     depends_on:
-      - kafka
-      - schema-registry
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
 
 networks:
   kafka:
