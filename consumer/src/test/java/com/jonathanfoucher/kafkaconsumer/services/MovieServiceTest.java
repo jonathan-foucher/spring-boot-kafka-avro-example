@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.support.Acknowledgment;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.time.LocalDate;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 class MovieServiceTest {
     @Autowired
     private MovieService movieService;
-    @MockBean
+    @MockitoBean
     private Acknowledgment acknowledgment;
 
     private static final Logger log = (Logger) LoggerFactory.getLogger(MovieService.class);

@@ -11,18 +11,19 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>4.0.4</version>
     </parent>
 
     <properties>
-        <java.version>23</java.version>
-        <confluent.version>7.7.1</confluent.version>
+        <java.version>25</java.version>
+        <confluent.version>8.2.0</confluent.version>
     </properties>
 
     <dependencies>
+        <!-- kafka -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
         </dependency>
 
         <!-- data -->
@@ -42,16 +43,10 @@
             <version>${confluent.version}</version>
         </dependency>
 
-        <!-- kafka -->
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>
-
         <!-- test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-kafka-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -73,7 +68,6 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

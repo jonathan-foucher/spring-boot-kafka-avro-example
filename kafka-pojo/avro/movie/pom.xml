@@ -9,7 +9,7 @@
     <name>avro.movie</name>
 
     <properties>
-        <avro.version>1.12.0</avro.version>
+        <avro.version>1.12.1</avro.version>
     </properties>
 
     <dependencies>
@@ -42,10 +42,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
             </plugin>
         </plugins>
     </build>

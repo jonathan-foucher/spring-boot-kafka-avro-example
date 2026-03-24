@@ -1,19 +1,18 @@
 package com.jonathanfoucher.kafkaproducer.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jonathanfoucher.kafkaproducer.services.MovieService;
 import com.jonathanfoucher.pojo.avro.movie.MovieValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDate;
 
@@ -31,7 +30,7 @@ class MovieControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private MovieController movieController;
-    @MockBean
+    @MockitoBean
     private MovieService movieService;
 
     private static final String MOVIES_PATH = "/movies";
@@ -40,17 +39,14 @@ class MovieControllerTest {
     private static final String TITLE = "Some movie";
     private static final LocalDate RELEASE_DATE = LocalDate.of(2022, 7, 19);
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    static {
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        objectMapper.registerModule(new JavaTimeModule());
-    }
+    private static final JsonMapper jsonMapper = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+            .build();
 
     @BeforeEach
     void initEach() {
         mockMvc = MockMvcBuilders.standaloneSetup(movieController)
-                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .setMessageConverters(new JacksonJsonHttpMessageConverter(jsonMapper))
                 .build();
     }
 

@@ -1,10 +1,10 @@
 ## Introduction
 This project is an example of Kafka producing/consuming with Spring Boot and Avro format using a schema registry.
 
-The repository contains three Spring Boot projects :
+The repository contains three projects :
 - a project to generate the required pojo from Avro
-- a kafka producer fed by a controller (REST API)
-- a kafka consumer that displays the received records in the logs
+- a Spring Boot kafka producer fed by a controller (REST API)
+- a Spring Boot kafka consumer that displays the received records in the logs
 
 ## Run the project
 ### POJO
